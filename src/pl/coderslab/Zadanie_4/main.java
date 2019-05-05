@@ -4,19 +4,6 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
-/*
-Kostka do gry
-Napisz funkcję, która:
-1. przyjmie w parametrze taki kod w postaci String,
-2. rozpozna wszystkie dane wejściowe: rodzaj kostki, liczbę rzutów, modyfikator,
-3. wykona symulację rzutów i zwróci wynik.
-Typy kostek występujące w grach: D3, D4, D6, D8, D10, D12, D20, D100.
-
-xDy+z
-y – rodzaj kostek, których należy użyć (np. D6, D10),
-x – liczba rzutów kośćmi (jeśli rzucamy raz, ten parametr jest pomijalny),
-z – (opcjonalnie) liczba, którą należy dodać (lub odjąć) do wyniku rzutów.
- */
 public class main {
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
@@ -48,39 +35,35 @@ public class main {
                 numberOfThrows = Integer.parseInt(numberOfThrowsString);
             }
 
+            String bonusType = new String();
             if (tempCode.contains("+")) {
-                int plusIndex = tempCode.indexOf("+");
-                diceDimention = getDiceDimention(tempCode, dIndex + 1, plusIndex);
-                if (diceDimention == 0 ) {
-                    return 0;
-                }
-                sum = diceThrow(numberOfThrows, diceDimention);
-                bonus = getBonus(tempCode, plusIndex);
-                if (bonus > 0) {
-                    System.out.println("premia: +" + bonus);
-                }
-                sum += bonus;
+                bonusType = "+";
             }
             else if (tempCode.contains("-")) {
-                int minusIndex = tempCode.indexOf("-");
-                diceDimention = getDiceDimention(tempCode, dIndex + 1, minusIndex);
-                if (diceDimention == 0) {
-                    return 0;
-                }
-                sum = diceThrow(numberOfThrows, diceDimention);
-                bonus = getBonus(tempCode, minusIndex);
-                if (bonus > 0) {
-                    System.out.println("premia: -" + bonus);
-                }
-                sum -= bonus;
+                bonusType = "-";
             }
             else {
-                diceDimention = getDiceDimention(tempCode,dIndex + 1, tempCode.length());
-                if (diceDimention == 0) {
-                    return 0;
-                }
-                sum = diceThrow(numberOfThrows, diceDimention);
+                bonusType = null;
             }
+
+            int bonusSignIndex = 0;
+            if (bonusType != null) {
+                bonusSignIndex = tempCode.indexOf(bonusType);
+                bonus = getBonus(tempCode, bonusSignIndex);
+            }
+
+            diceDimention = getDiceDimention(tempCode,dIndex + 1, bonusSignIndex);
+            if (diceDimention == 0 ) {
+                return 0;
+            }
+            sum = diceThrow(numberOfThrows, diceDimention);
+            if (bonus > 0 && bonusType.equals("+")) {
+                System.out.println("premia: +" + bonus);
+            }
+            else if (bonus > 0 && bonusType.equals("-")) {
+                System.out.println("premia: -" + bonus);
+            }
+            sum += bonus;
         }
         catch (NumberFormatException e) {
             System.out.println("błędnie wpisany kod");
@@ -106,6 +89,9 @@ public class main {
     }
 
     private static int getDiceDimention(String codeString, int DiceDimentionPositionIndex, int signPositionIndex) {
+        if (signPositionIndex == 0) {
+            signPositionIndex = codeString.length();
+        }
         String tempString = codeString.substring(DiceDimentionPositionIndex, signPositionIndex).trim();
         int diceDimention = Integer.parseInt(tempString);
         Integer[] validDimentions = {3, 4, 6, 8, 10, 12, 20, 100};
